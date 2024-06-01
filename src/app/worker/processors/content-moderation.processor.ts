@@ -8,6 +8,8 @@ import {
 } from 'src/libraries/queues/jobs';
 
 import { ConfigService } from '@nestjs/config';
+import { PostService } from '../services/post.service';
+import mongoose from 'mongoose';
 @Processor(EmailQueues.CONTENT_MODERATION_QUEUE, {
   concurrency: 100,
   useWorkerThreads: true,
@@ -15,7 +17,10 @@ import { ConfigService } from '@nestjs/config';
 @Injectable()
 export class ContentModerationProcessors extends WorkerHost {
   private readonly logger = new Logger(ContentModerationProcessors.name);
-  constructor(private _configService: ConfigService) {
+  constructor(
+    private _configService: ConfigService,
+    private _postService: PostService,
+  ) {
     super();
   }
   async process(
@@ -41,6 +46,10 @@ export class ContentModerationProcessors extends WorkerHost {
   async checkPostContent(job: Job<PostCreatedJOb['data']>) {
     const { postId } = job.data;
     console.log(postId);
+    const post = await this._postService.getPostById(
+      new mongoose.Types.ObjectId(postId),
+    );
+    console.log(post);
     // TODO: FETCHED THE POST BASED ON POSTID FROM MONGODB
     // TODO: SEND THE CONTENT IN THE SENTIMENT ANALYSIS MODEL
     // TODO: CHECK IS THE CONTENT IS SAFE (i.e) the negative level should not be the greater than 0.6

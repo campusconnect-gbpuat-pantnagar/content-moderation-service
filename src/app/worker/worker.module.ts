@@ -4,6 +4,8 @@ import { QueueModule } from '../../libraries/queues/queue.module';
 import { ConfigModule } from '@nestjs/config';
 import { EmailQueues } from '../../libraries/queues/queue.constants';
 import { ContentModerationProcessors } from './processors/content-moderation.processor';
+import Post from 'src/libraries/dal/models/posts/post.schema';
+import { PostService } from './services/post.service';
 
 @Module({
   imports: [
@@ -24,11 +26,6 @@ import { ContentModerationProcessors } from './processors/content-moderation.pro
           age: 200,
           count: 10,
         },
-        backoff: {
-          // Optional backoff settings for retrying failed jobs
-          type: 'exponential',
-          delay: 60000, // Initial delay of 1 min
-        },
       },
     }),
 
@@ -37,6 +34,10 @@ import { ContentModerationProcessors } from './processors/content-moderation.pro
     }),
   ],
   controllers: [],
-  providers: [ContentModerationProcessors],
+  providers: [
+    ContentModerationProcessors,
+    { provide: 'POST_MODEL', useValue: Post },
+    PostService,
+  ],
 })
 export class WorkerModule {}

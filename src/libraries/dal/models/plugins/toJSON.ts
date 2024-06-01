@@ -17,6 +17,7 @@ const deleteAtPath = (obj: any, path: any, index: number) => {
 };
 
 const toJSON = (schema: any) => {
+  // eslint-disable-next-line @typescript-eslint/ban-types
   let transform: Function;
   if (schema.options.toJSON && schema.options.toJSON.transform) {
     transform = schema.options.toJSON.transform;

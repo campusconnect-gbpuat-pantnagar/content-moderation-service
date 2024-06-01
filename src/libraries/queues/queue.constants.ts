@@ -2,7 +2,7 @@ export enum EmailQueues {
   AUTH_NOTIFICATION = 'email_auth_notification_queue',
   APP_NOTIFICATION = 'email_app_notification_queue',
 
-  CONTENT_MODERATION_QUEUE = 'email_content_moderation_queue',
+  CONTENT_MODERATION_QUEUE = 'content_moderation_queue',
 
   UNIVERSITY_NOTIFICATION = 'email_university_notification_queue',
 
