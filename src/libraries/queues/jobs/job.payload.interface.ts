@@ -1,6 +1,6 @@
 import { QueueEventJobPattern } from './job.pattern';
 
-export interface PostCreatedJOb {
+export interface PostCreatedJob {
   pattern: QueueEventJobPattern.POST_CREATED;
   data: {
     postId: string;

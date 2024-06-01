@@ -3,7 +3,7 @@ import { Injectable, Logger } from '@nestjs/common';
 import { EmailQueues } from 'src/libraries/queues/queue.constants';
 import { Job } from 'bullmq';
 import {
-  PostCreatedJOb,
+  PostCreatedJob,
   QueueEventJobPattern,
 } from 'src/libraries/queues/jobs';
 
@@ -29,7 +29,7 @@ export class ContentModerationProcessors extends WorkerHost {
       this._configService.get<number>('NEGATIVE_THRESHOLD');
   }
   async process(
-    job: Job<PostCreatedJOb['data'], number, string>,
+    job: Job<PostCreatedJob['data'], number, string>,
   ): Promise<void> {
     try {
       switch (job.name) {
@@ -48,35 +48,44 @@ export class ContentModerationProcessors extends WorkerHost {
     }
   }
 
-  async checkPostContent(job: Job<PostCreatedJOb['data']>) {
+  async checkPostContent(job: Job<PostCreatedJob['data']>) {
     const { postId } = job.data;
-    console.log(postId);
-
-    // fetching the post content by postId
-    const post = await this._postService.getPostById(
-      new mongoose.Types.ObjectId(postId),
-    );
-    console.log(post);
-    // analysis of the post content sentiments score
-    const { sentiments, isSafe } =
-      await this._textSentimentAnalysisService.analyzeTextSentiment(
-        post.content,
-      );
-    console.log(sentiments, isSafe);
-    if (!isSafe) {
-      // updating the post is_safe property so post will not recommend in feed
-      const updatePost = await this._postService.updatePostIsSafeById(
+    try {
+      // fetching the post content by postId
+      const post = await this._postService.getPostById(
         new mongoose.Types.ObjectId(postId),
-        isSafe,
       );
-      console.log(updatePost);
-    } else {
-      this.logger.log(`Post with postId: ${postId} is safe.`);
+
+      if (!post) {
+        throw new Error(`Post with id ${postId} not found`);
+      }
+
+      // analysis of the post content sentiments score
+      const { sentiments, isSafe } =
+        await this._textSentimentAnalysisService.analyzeTextSentiment(
+          post.content,
+        );
+      this.logger.debug(sentiments, isSafe);
+      if (!isSafe) {
+        // updating the post is_safe property so post will not recommend in feed
+        await this._postService.updatePostIsSafeById(
+          new mongoose.Types.ObjectId(postId),
+          isSafe,
+        );
+      } else {
+        this.logger.log(`Post with postId: ${postId} is safe.`);
+      }
+    } catch (error) {
+      this.logger.error(
+        `Error checking post content for job ${job.id}: ${error.message}`,
+        error.stack,
+      );
+      throw error;
     }
   }
 
   @OnWorkerEvent('completed')
-  async onCompleted(job: Job<PostCreatedJOb['data']>) {
+  async onCompleted(job: Job<PostCreatedJob['data']>) {
     const { id, name, queueName, finishedOn } = job;
     const completionTime = finishedOn ? new Date(finishedOn).toISOString() : '';
 
