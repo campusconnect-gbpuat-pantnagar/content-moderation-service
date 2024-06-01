@@ -6,11 +6,19 @@ import { EmailQueues } from '../../libraries/queues/queue.constants';
 import { ContentModerationProcessors } from './processors/content-moderation.processor';
 import Post from 'src/libraries/dal/models/posts/post.schema';
 import { PostService } from './services/post.service';
+import { TextSentimentAnalysisService } from './services/text-sentiment-analysis.service';
+import { HttpModule } from '@nestjs/axios';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    HttpModule.registerAsync({
+      useFactory: () => ({
+        timeout: 5000,
+        maxRedirects: 5,
+      }),
     }),
     BullModule.forRoot({
       connection: {
@@ -26,6 +34,11 @@ import { PostService } from './services/post.service';
           age: 200,
           count: 10,
         },
+        backoff: {
+          // Optional backoff settings for retrying failed jobs
+          type: 'exponential',
+          delay: 60000, // Initial delay of 60 second
+        },
       },
     }),
 
@@ -38,6 +51,7 @@ import { PostService } from './services/post.service';
     ContentModerationProcessors,
     { provide: 'POST_MODEL', useValue: Post },
     PostService,
+    TextSentimentAnalysisService,
   ],
 })
 export class WorkerModule {}

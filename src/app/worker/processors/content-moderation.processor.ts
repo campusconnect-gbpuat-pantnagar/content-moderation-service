@@ -10,6 +10,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { PostService } from '../services/post.service';
 import mongoose from 'mongoose';
+import { TextSentimentAnalysisService } from '../services/text-sentiment-analysis.service';
 @Processor(EmailQueues.CONTENT_MODERATION_QUEUE, {
   concurrency: 100,
   useWorkerThreads: true,
@@ -17,11 +18,15 @@ import mongoose from 'mongoose';
 @Injectable()
 export class ContentModerationProcessors extends WorkerHost {
   private readonly logger = new Logger(ContentModerationProcessors.name);
+  private readonly NEGATIVE_THRESHOLD: number;
   constructor(
     private _configService: ConfigService,
     private _postService: PostService,
+    private _textSentimentAnalysisService: TextSentimentAnalysisService,
   ) {
     super();
+    this.NEGATIVE_THRESHOLD =
+      this._configService.get<number>('NEGATIVE_THRESHOLD');
   }
   async process(
     job: Job<PostCreatedJOb['data'], number, string>,
@@ -46,13 +51,28 @@ export class ContentModerationProcessors extends WorkerHost {
   async checkPostContent(job: Job<PostCreatedJOb['data']>) {
     const { postId } = job.data;
     console.log(postId);
+
+    // fetching the post content by postId
     const post = await this._postService.getPostById(
       new mongoose.Types.ObjectId(postId),
     );
     console.log(post);
-    // TODO: FETCHED THE POST BASED ON POSTID FROM MONGODB
-    // TODO: SEND THE CONTENT IN THE SENTIMENT ANALYSIS MODEL
-    // TODO: CHECK IS THE CONTENT IS SAFE (i.e) the negative level should not be the greater than 0.6
+    // analysis of the post content sentiments score
+    const { sentiments, isSafe } =
+      await this._textSentimentAnalysisService.analyzeTextSentiment(
+        post.content,
+      );
+    console.log(sentiments, isSafe);
+    if (!isSafe) {
+      // updating the post is_safe property so post will not recommend in feed
+      const updatePost = await this._postService.updatePostIsSafeById(
+        new mongoose.Types.ObjectId(postId),
+        isSafe,
+      );
+      console.log(updatePost);
+    } else {
+      this.logger.log(`Post with postId: ${postId} is safe.`);
+    }
   }
 
   @OnWorkerEvent('completed')
