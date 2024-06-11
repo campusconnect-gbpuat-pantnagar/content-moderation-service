@@ -1,18 +1,47 @@
 import { Module } from '@nestjs/common';
 import { BullModule } from '@nestjs/bullmq';
 import { QueueModule } from '../../libraries/queues/queue.module';
-import { ConfigModule } from '@nestjs/config';
+import { ConfigModule, ConfigService } from '@nestjs/config';
 import { EmailQueues } from '../../libraries/queues/queue.constants';
 import { ContentModerationProcessors } from './processors/content-moderation.processor';
-import Post from 'src/libraries/dal/models/posts/post.schema';
-import { PostService } from './services/post.service';
 import { TextSentimentAnalysisService } from './services/text-sentiment-analysis.service';
 import { HttpModule } from '@nestjs/axios';
+import { MailerModule } from '@nestjs-modules/mailer';
+import * as path from 'path';
+import { EjsAdapter } from '@nestjs-modules/mailer/dist/adapters/ejs.adapter';
+import { PostService } from '../post/post.service';
+import { UserService } from '../user/user.service';
+import { PostModule } from '../post/post.module';
+import { UserModule } from '../user/user.module';
+import { ContentModerationNotificationProcessor } from './processors/content-moderation-notification.processor';
 
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
+    }),
+    PostModule,
+    UserModule,
+    MailerModule.forRootAsync({
+      useFactory: (configService: ConfigService) => ({
+        transport: {
+          host: configService.get('SMTP_SERVICE_HOST'),
+          // For SSL and TLS connection
+          auth: {
+            // Account gmail address
+            user: configService.get('SMTP_SERVICE_EMAIL'),
+            pass: configService.get('SMTP_SERVICE_PASSWORD'),
+          },
+        },
+        template: {
+          dir: path.resolve(__dirname, '../../../templates'),
+          adapter: new EjsAdapter(),
+          options: {
+            strict: false,
+          },
+        },
+      }),
+      inject: [ConfigService],
     }),
     HttpModule.registerAsync({
       useFactory: () => ({
@@ -43,15 +72,19 @@ import { HttpModule } from '@nestjs/axios';
     }),
 
     QueueModule.register({
-      queues: [EmailQueues.CONTENT_MODERATION_QUEUE],
+      queues: [
+        EmailQueues.CONTENT_MODERATION_QUEUE,
+        EmailQueues.CONTENT_MODERATION_NOTIFICATION_QUEUE,
+      ],
     }),
   ],
   controllers: [],
   providers: [
     ContentModerationProcessors,
-    { provide: 'POST_MODEL', useValue: Post },
-    PostService,
+    ContentModerationNotificationProcessor,
     TextSentimentAnalysisService,
+    PostService,
+    UserService,
   ],
 })
 export class WorkerModule {}

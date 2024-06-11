@@ -4,6 +4,8 @@ export enum EmailQueues {
 
   CONTENT_MODERATION_QUEUE = 'content_moderation_queue',
 
+  CONTENT_MODERATION_NOTIFICATION_QUEUE = 'content_moderation_notification_queue',
+
   UNIVERSITY_NOTIFICATION = 'email_university_notification_queue',
 
   USER_DYNAMIC_FEED_AND_CONNECTION_SUGGESTION_QUEUE = 'user_dynamic_feed_and_connection',

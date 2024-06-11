@@ -1,6 +1,8 @@
 import * as mongoose from 'mongoose';
 import { IPostDoc, IPostModel } from './post.entity';
 import toJSON from '../plugins/toJSON';
+import { Inject, Injectable } from '@nestjs/common';
+import { DalService } from '../../dal.service';
 
 const postSchema = new mongoose.Schema<IPostDoc, IPostModel>(
   {
@@ -79,5 +81,23 @@ const postSchema = new mongoose.Schema<IPostDoc, IPostModel>(
 );
 
 postSchema.plugin(toJSON);
-const Post = mongoose.model<IPostDoc, IPostModel>('Post', postSchema);
-export default Post;
+
+@Injectable()
+export class PostModelProvider {
+  constructor(
+    @Inject('PostDBService') private readonly dalService: DalService,
+  ) {}
+
+  getModel(): IPostModel {
+    const connection: mongoose.Connection =
+      this.dalService.getConnection('postDB');
+    return connection.model<IPostDoc, IPostModel>('Post', postSchema);
+  }
+}
+
+export const PostModel = {
+  provide: 'PostModel',
+  useFactory: (jobModelProvider: PostModelProvider) =>
+    jobModelProvider.getModel(),
+  inject: [PostModelProvider],
+};

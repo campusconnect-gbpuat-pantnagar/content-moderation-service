@@ -1,38 +1,53 @@
-import { Connection, ConnectOptions } from 'mongoose';
-import * as mongoose from 'mongoose';
+import { Connection, ConnectOptions, createConnection } from 'mongoose';
+
 export class DalService {
-  connection: Connection;
+  private connections: { [key: string]: Connection } = {};
 
-  async connect(url: string, config: ConnectOptions = {}): Promise<Connection> {
-    const baseConfig: ConnectOptions = {
-      autoIndex: process.env.AUTO_CREATE_INDEXES === 'true',
-    };
+  async connect(
+    url: string,
+    config: ConnectOptions = {},
+    connectionName: string = 'default',
+  ): Promise<Connection> {
+    if (!this.connections[connectionName]) {
+      const baseConfig: ConnectOptions = {
+        autoIndex: process.env.AUTO_CREATE_INDEXES === 'true',
+      };
 
-    const instance = await mongoose.connect(url, {
-      ...baseConfig,
-      ...config,
-    });
-    console.log('MongoDB Database connected successfully');
-    this.connection = instance.connection;
-    return this.connection;
+      const instance = await createConnection(url, {
+        ...baseConfig,
+        ...config,
+      });
+      console.log(`MongoDB Database connected successfully: ${connectionName}`);
+      this.connections[connectionName] = instance;
+    }
+    return this.connections[connectionName];
   }
 
-  isConnected(): boolean {
-    return this.connection && this.connection.readyState === 1;
+  getConnection(connectionName: string = 'default'): Connection {
+    return this.connections[connectionName];
   }
 
-  async disconnect() {
-    await mongoose.disconnect();
+  isConnected(connectionName: string = 'default'): boolean {
+    const connection = this.connections[connectionName];
+    return connection && connection.readyState === 1;
   }
 
-  /**
-   * The `destroy` function drops the database only in a test environment.
-   */
-  async destroy() {
+  async disconnect(connectionName: string = 'default') {
+    const connection = this.connections[connectionName];
+    if (connection) {
+      await connection.close();
+      delete this.connections[connectionName];
+    }
+  }
+
+  async destroy(connectionName: string = 'default') {
     if (process.env.NODE_ENV !== 'test') {
       throw new Error('Allowed only in test environment');
     }
 
-    await mongoose.connection.dropDatabase();
+    const connection = this.connections[connectionName];
+    if (connection) {
+      await connection.dropDatabase();
+    }
   }
 }

@@ -2,26 +2,19 @@ import { Module } from '@nestjs/common';
 import { HealthCheckController } from './healthcheck/healthcheck.contoller';
 import { WorkerModule } from './worker/worker.module';
 import { ConfigModule } from '@nestjs/config';
-import { DalService } from 'src/libraries/dal/dal.service';
+import { PostModule } from './post/post.module';
+import { UserModule } from './user/user.module';
 
-const dalService = {
-  provide: DalService,
-  useFactory: async () => {
-    const service = new DalService();
-    await service.connect(process.env.MONGO_URI);
-    return service;
-  },
-};
-
-const PROVIDERS = [dalService];
 @Module({
   imports: [
     ConfigModule.forRoot({
       isGlobal: true,
     }),
     WorkerModule,
+    PostModule,
+    UserModule,
   ],
   controllers: [HealthCheckController],
-  providers: [...PROVIDERS],
+  providers: [],
 })
 export class AppModule {}

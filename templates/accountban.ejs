@@ -1,0 +1,274 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Email Verification</title>
+    <link
+      rel="stylesheet"
+      href="https://fonts.googleapis.com/css2?family=Outfit:wght@200;300;400;500;600;700;800&family=Work+Sans:wght@300;400;500;600&display=swap"
+    />
+    <style>
+      * {
+        padding: 0px;
+        margin: 0px;
+        box-sizing: border-box;
+      }
+
+      body {
+        background-color: #f8f6f4;
+        position: relative;
+        font-family: "Work Sans", sans-serif;
+      }
+
+      .bg_color {
+        position: absolute;
+        top: 0;
+        left: 0;
+        right: 0;
+        width: 100%;
+        height: 100%;
+        background-color: #fafafa;
+        z-index: -10;
+      }
+
+      .container {
+        border-radius: 12px;
+        max-width: 500px;
+        margin: 0 auto;
+        padding: 1rem 0.5rem;
+        background-color: #0a0a0a;
+      }
+
+      .container .logo_image {
+        width: 80%;
+        height: 100%;
+        margin: 0 auto;
+        padding: 5px;
+      }
+      .logo_image > img {
+        width: 100%;
+        height: 100%;
+      }
+      .main_container {
+        background-color: white;
+        border-radius: 8px;
+        box-shadow: rgba(0, 0, 0, 0.09) 0px 3px 12px;
+        width: 100%;
+      }
+
+      /* css for content container */
+      .content_container {
+        width: 80%;
+        margin: 0 auto;
+        /* text-align: center; */
+      }
+      .content_container > .username {
+        font-size: 1rem;
+        margin-top: 3rem;
+      }
+      .username > span {
+        font-weight: 600;
+      }
+      .content_container > p {
+        width: 100%;
+        line-height: 1.4rem;
+        margin: 1rem 0;
+        font-weight: 400;
+        color: #100c08;
+      }
+
+      .delete_account_image {
+        max-width: 350px;
+        max-height: 350px;
+        margin: auto auto;
+        user-select: none;
+      }
+      .delete_account_image > img {
+        width: 100%;
+        height: 100%;
+        user-select: none;
+      }
+
+      .content_container > .visit_campusconnect {
+        padding: 1rem 0;
+        width: 100%;
+        /* text-align: center; */
+      }
+      .visit_campusconnect > a {
+        margin: 0 auto;
+        border: 1px solid #fafafa;
+        text-decoration: none !important;
+        border-radius: 8px;
+        font-size: 0.9rem;
+        background-color: #0a0a0a;
+        color: white;
+        padding: 0.7rem 2rem;
+        display: inline-block;
+      }
+      .team {
+        width: 80%;
+        margin: auto auto;
+        padding-top: 4rem;
+        padding-bottom: 4rem;
+      }
+
+      .team > P {
+        font-weight: 600;
+        margin: 0.3rem 0;
+        color: #252525;
+      }
+      footer {
+        box-shadow: rgba(0, 0, 0, 0.09) 0px 3px 12px;
+        padding: 3rem 1rem;
+        background-color: #0a0a0a;
+        width: 100%;
+        text-align: center;
+      }
+
+      footer > h2 {
+        margin: 1rem auto;
+        font-size: 2rem;
+        color: white;
+        text-align: center;
+      }
+
+      .line {
+        width: 90%;
+        height: 1px;
+        background-color: #f8f6f4;
+        margin: 1.2rem auto;
+      }
+
+      .privacy_policy {
+        text-align: center;
+        width: 80%;
+        font-size: 0.9rem;
+        line-height: 1.3rem;
+        color: #f8f6f4;
+        margin: 1rem auto;
+      }
+      .support_email {
+        text-align: center;
+        font-size: 0.9rem;
+        /* word-wrap: break-word; */
+        width: 80%;
+        color: #f8f6f4;
+        line-height: 1.3rem;
+        margin: 1rem auto;
+        font-size: 0.8rem;
+      }
+
+      .unsubscribe {
+        text-align: center;
+        color: #f8f6f4;
+        margin: 1rem auto;
+        font-size: 0.7rem;
+      }
+
+      .unsubscribe > a {
+        color: #f8f6f4;
+        text-decoration: underline;
+      }
+
+      .copyrights {
+        box-shadow: rgba(0, 0, 0, 0.09) 0px 3px 12px;
+        border-bottom-left-radius: 8px;
+        border-bottom-right-radius: 8px;
+        height: 60px;
+        width: 100%;
+        background-color: #0a0a0a;
+        text-align: center;
+        font-size: 0.69rem;
+      }
+
+      .copyrights > span {
+        color: wheat;
+      }
+    </style>
+  </head>
+  <body>
+    <!-- Background color  -->
+    <div class="bg_color"></div>
+    <!-- Content -->
+    <div class="container">
+      <!-- Logo Image -->
+      <div class="logo_image">
+        <img
+          src="https://ucarecdn.com/8175f2cd-6ada-434b-999c-3f36c14d4b0f/cc_logo_horizontal_white.png"
+          alt="logo"
+        />
+      </div>
+
+      <div class="main_container">
+        <div class="content_container">
+          <div class="delete_account_image">
+            <img
+              src="https://ucarecdn.com/959a4d20-86cc-487f-8380-da46f7553678/1000_F_139431226_zrQhhWFufHdLusD0eGeW0hTJXHoUFKu5removebgpreview.png"
+              alt="account_banned_image"
+            />
+          </div>
+          <div class="username">
+            Hi
+            <span><%= username %>,</span>
+          </div>
+
+          <p>
+            We regret to inform you that due to repeated violations of our
+            community standards, your account on CampusConnect has been blocked.
+            Our records indicate that you have repeatedly attempted to post
+            content that does not comply with our guidelines.
+          </p>
+          <p>
+            Maintaining a safe and respectful environment for our community is
+            of atmost importance to us, and repeated violations necessitate this
+            action.
+          </p>
+          <p>
+            Your account will remain blocked until further notice. If you
+            believe this action was taken in error, or if you would like to
+            discuss this matter further, please contact our site administrator.
+          </p>
+          <p>
+            We appreciate your understanding and cooperation in helping us
+            uphold the values of our community.
+          </p>
+
+          <div class="visit_campusconnect">
+            <a
+              href="mailto:safety.campusconnect.gbpuat@gmail.com"
+              class="button"
+              >Contact Admin</a
+            >
+          </div>
+        </div>
+        <!-- content container -->
+        <div class="team">
+          <p>Best Regards,</p>
+          <p>Team CampusConnect</p>
+        </div>
+      </div>
+      <footer>
+        <h2>Get In Touch</h2>
+        <div class="line"></div>
+        <div>
+          <!-- Icons -->
+        </div>
+        <p class="privacy_policy">
+          If you have any questions regarding your data, please visit our
+          <a href="#">Privacy Policy</a>. Need help? Contact us at
+        </p>
+        <p class="support_email">
+          Need help? Contact us at support@campusconnect.gbpuat.tech
+        </p>
+        <p class="unsubscribe">
+          To unsubscribe or manage your email preferences,
+          <a href="#">click here</a>.
+        </p>
+      </footer>
+      <div class="copyrights">
+        <span>&#169; 2024 CampusConnect. All Rights Reserved.</span>
+      </div>
+    </div>
+  </body>
+</html>

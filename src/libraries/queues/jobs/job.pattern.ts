@@ -21,6 +21,9 @@ export enum QueueEventJobPattern {
   EVENT_CREATED = 'event_created',
   EVENT_CREATED_EMAIL_TO_USER = 'event_created_email_to_user',
 
+  CONTENT_MODERATION_NOTIFICATION_FOR_USER = 'content_moderation_notification_for_user',
+  CONTENT_MODERATION_NOTIFICATION_ACCOUNT_BLOCKED_FOR_USER = 'content_moderation_notification_account_blocked_for_user',
+  CONTENT_MODERATION_NOTIFICATION_ACCOUNT_BLOCKED_FOR_ADMIN = 'content_moderation_notification_account_blocked_for_admin',
   // USER_DYNAMIC_FEED_AND_CONNECTION_SUGGESTION_QUEUE and user_dynamic_feed_and_connection_suggestion_worker
   GENERATE_CONNECTIONS_SUGGESTION = 'generate_connections_suggestion',
 }
