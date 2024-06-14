@@ -105,10 +105,7 @@ export class ContentModerationProcessors extends WorkerHost {
       const isComeUnderInstensive = categories.some(
         (cat) =>
           cat.includes('sexual_content') ||
-          cat.includes('violence_harmful_behavior') ||
-          cat.includes('hate_speech_discrimination') ||
           cat.includes('drug_substance_abuse') ||
-          cat.includes('sensitive_personal_info'),
       );
 
       if (
