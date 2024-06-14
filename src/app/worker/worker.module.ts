@@ -14,6 +14,7 @@ import { UserService } from '../user/user.service';
 import { PostModule } from '../post/post.module';
 import { UserModule } from '../user/user.module';
 import { ContentModerationNotificationProcessor } from './processors/content-moderation-notification.processor';
+import { TextCategorizer } from './services/text-categorizer.service';
 
 @Module({
   imports: [
@@ -83,6 +84,7 @@ import { ContentModerationNotificationProcessor } from './processors/content-mod
     ContentModerationProcessors,
     ContentModerationNotificationProcessor,
     TextSentimentAnalysisService,
+    TextCategorizer,
     PostService,
     UserService,
   ],

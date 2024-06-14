@@ -17,6 +17,7 @@ import { TextSentimentAnalysisService } from '../services/text-sentiment-analysi
 import { PostService } from 'src/app/post/post.service';
 import { InjectContentModerationNotificationQueue } from 'src/libraries/queues/decorators/inject-queue.decorator';
 import { UserService } from 'src/app/user/user.service';
+import { TextCategorizer } from '../services/text-categorizer.service';
 @Processor(EmailQueues.CONTENT_MODERATION_QUEUE, {
   concurrency: 100,
   useWorkerThreads: true,
@@ -25,6 +26,7 @@ import { UserService } from 'src/app/user/user.service';
 export class ContentModerationProcessors extends WorkerHost {
   private readonly logger = new Logger(ContentModerationProcessors.name);
   private readonly NEGATIVE_THRESHOLD: number;
+  private readonly POSITIVE_THRESHOLD: number;
   private readonly UNSAFE_POST_COUNT_THRESHOLD: number;
   constructor(
     private _configService: ConfigService,
@@ -33,10 +35,13 @@ export class ContentModerationProcessors extends WorkerHost {
     private _textSentimentAnalysisService: TextSentimentAnalysisService,
     @InjectContentModerationNotificationQueue()
     private _contentModerationNotificationQueue: Queue,
+    private _textCategorizer: TextCategorizer,
   ) {
     super();
     this.NEGATIVE_THRESHOLD =
       this._configService.get<number>('NEGATIVE_THRESHOLD');
+    this.NEGATIVE_THRESHOLD =
+      this._configService.get<number>('POSITIVE_THRESHOLD');
     this.UNSAFE_POST_COUNT_THRESHOLD = this._configService.get<number>(
       'UNSAFE_POST_COUNT_THRESHOLD',
     );
@@ -74,16 +79,46 @@ export class ContentModerationProcessors extends WorkerHost {
       }
 
       // analysis of the post content sentiments score
-      const { sentiments, isSafe } =
+      const { sentiments, isSafe: isSafeByHuggingFace } =
         await this._textSentimentAnalysisService.analyzeTextSentiment(
           post.content,
         );
-      this.logger.debug(sentiments, isSafe);
-      if (!isSafe) {
+
+      const { categories, isSafeByOurAlgo } =
+        await this.checkSafeByStringSimilarity(post.content);
+
+      let isSafe = true;
+
+      if (!isSafeByOurAlgo) {
+        if (
+          sentiments.some(
+            (sentiment) =>
+              sentiment.label === 'positive' &&
+              sentiment.score < this.POSITIVE_THRESHOLD,
+          )
+        ) {
+          isSafe = false;
+        }
+      }
+
+      console.log(isSafe, isSafeByHuggingFace);
+      const isComeUnderInstensive = categories.some(
+        (cat) =>
+          cat.includes('sexual_content') ||
+          cat.includes('violence_harmful_behavior') ||
+          cat.includes('hate_speech_discrimination') ||
+          cat.includes('drug_substance_abuse') ||
+          cat.includes('sensitive_personal_info'),
+      );
+
+      if (
+        !isSafe ||
+        isSafeByHuggingFace === false ||
+        isComeUnderInstensive === true
+      ) {
         // updating the post is_safe property so post will not recommend in feed
         await this._postService.updatePostIsSafeById(
           new mongoose.Types.ObjectId(postId),
-          isSafe,
         );
         // find user of the post by userId
 
@@ -158,6 +193,16 @@ export class ContentModerationProcessors extends WorkerHost {
       );
       throw error;
     }
+  }
+
+  async checkSafeByStringSimilarity(text: string) {
+    const { categories, score } = this._textCategorizer.categorizeText(text);
+    console.log(categories, score);
+
+    if (categories.length > 0) {
+      return { categories, isSafeByOurAlgo: false };
+    }
+    return { categories, isSafeByOurAlgo: true };
   }
 
   @OnWorkerEvent('completed')

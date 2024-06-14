@@ -15,10 +15,9 @@ export class PostService {
 
   async updatePostIsSafeById(
     postId: mongoose.Types.ObjectId,
-    is_safe: boolean,
   ): Promise<IPostDoc | null> {
     return this.postModel
-      .findByIdAndUpdate(postId, { $set: { is_safe } }, { new: true })
+      .findByIdAndUpdate(postId, { $set: { is_safe: false } }, { new: true })
       .exec();
   }
 
